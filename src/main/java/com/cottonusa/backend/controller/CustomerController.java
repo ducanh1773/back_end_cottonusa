@@ -1,15 +1,20 @@
 package com.cottonusa.backend.controller;
 
 
+import com.cottonusa.backend.DTO.CustomerDTO;
+import com.cottonusa.backend.DTO.LoginRequest;
 import com.cottonusa.backend.exception.CustomerNotFoundException;
 import com.cottonusa.backend.modal.Customer;
 import com.cottonusa.backend.repository.CustomerRepository;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 class CustomerController {
+
 
     private final CustomerRepository repository;
 
@@ -18,6 +23,15 @@ class CustomerController {
     }
 
 
+
+    private CustomerDTO convertToDTO(Customer customer) {
+        CustomerDTO customerDTO = new CustomerDTO();
+        customerDTO.setId(customer.getId());
+        customerDTO.setName(customer.getFirstName()+ " "+ customer.getLastName());
+        customerDTO.setEmail(customer.getEmail());
+        return customerDTO;
+    }
+
     @GetMapping("/customers")
     List<Customer> all() {
         return repository.findAll();
@@ -25,9 +39,15 @@ class CustomerController {
     // end::get-aggregate-root[]
 
     @PostMapping("/customers")
-    Customer newCustomer(@RequestBody Customer newEmployee) {
-        return repository.save(newEmployee);
+    CustomerDTO newCustomer(@RequestBody Customer newCustomer) {
+        Optional<Customer> existingCustomer = repository.findByEmail(newCustomer.getEmail());
+        if (existingCustomer.isPresent()) {
+            throw new RuntimeException("Email already exists!");
+        }
+        Customer savedCustomer = repository.save(newCustomer);
+        return convertToDTO(savedCustomer);
     }
+
 
     // Single item
 
@@ -56,4 +76,40 @@ class CustomerController {
     void deleteCustomer(@PathVariable Long id) {
         repository.deleteById(id);
     }
+
+    @GetMapping("/customers/first-name/{firstName}")
+    public List<Customer> getCustomersByFirstName(@PathVariable String firstName) {
+        return repository.findByFirstName(firstName);
+    }
+
+    @GetMapping("/customers/first-name-x/{firstName}")
+    public List<Customer> getCustomersByFirstNameAndLimit(
+            @PathVariable String firstName,
+            @RequestParam(required = false, defaultValue = "10") int limit) {
+
+        List<Customer> customers = repository.findByFirstName(firstName);
+
+
+        if (customers.isEmpty()) {
+            return new ArrayList<>();
+        } else {
+            return customers.subList(0, Math.min(customers.size(), limit));
+        }
+    }
+    @PostMapping("/login")
+    public String login(@RequestBody LoginRequest loginRequest) {
+        // Kiểm tra email và mật khẩu trong cơ sở dữ liệu
+        Optional<Customer> customer = repository.findByEmail(loginRequest.getEmail());
+
+        if (customer.isPresent() && customer.get().getPassWord().equals(loginRequest.getPassWord())) {
+            return "Đăng nhập thành công!";
+        } else {
+            return "Email hoặc mật khẩu không đúng!";
+        }
+    }
+
+
+
+
+
 }
