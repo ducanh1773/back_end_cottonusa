@@ -38,7 +38,11 @@ public class ProductController {
     public Product creatProduct(@RequestBody Product product) {
         Product savedProduct = repository.save(product);
         return product;
-
-
     }
+
+    @GetMapping("/products/FindProduct")
+    public Product findProductByID(@RequestBody Product product){
+        return product;
+    }
+
 }

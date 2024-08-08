@@ -40,11 +40,15 @@ public class Customer {
         this.passWord = passWord;
     }
 
+
+
     @Override
     public String toString() {
         return String.format(
                 "Customer[id=%d, firstName='%s', lastName='%s',email='%s',passWord='%s']",
                 id, firstName,lastName,email,passWord);
     }
+
+
 
 }
