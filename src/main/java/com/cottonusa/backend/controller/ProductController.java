@@ -4,10 +4,12 @@ package com.cottonusa.backend.controller;
 import com.cottonusa.backend.modal.Customer;
 import com.cottonusa.backend.modal.Product;
 import com.cottonusa.backend.repository.ProductRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 
@@ -44,5 +46,14 @@ public class ProductController {
     public Product findProductByID(@RequestBody Product product){
         return product;
     }
+
+    @GetMapping("products/findProduct/{id}")
+    public ResponseEntity<Product> findProductByID(@PathVariable Long id) {
+        Optional<Product> product = repository.findById(id);
+        return product.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+
 
 }

@@ -7,6 +7,8 @@ import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Date;
+
 @Entity
 
 public class Product {
@@ -19,10 +21,19 @@ public class Product {
     @Getter @Setter
     private long priceProduct;
     @Getter @Setter
-    private String imgProduct;
-
-
-
+    private String summary;
+    @Getter @Setter
+    private String cover;
+    @Getter @Setter
+    private String sku;
+    @Getter @Setter
+    private String description;
+    @Getter @Setter
+    private String category_id;
+    @Getter @Setter
+    private Date created_at;
+    @Getter @Setter
+    private Date deleted_at;
     protected Product() {}
 
 
