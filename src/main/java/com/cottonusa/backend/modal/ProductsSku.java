@@ -1,8 +1,15 @@
 package com.cottonusa.backend.modal;
 
-import java.util.Date;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 
-public class products_skus {
+import java.util.Date;
+@Entity
+public class ProductsSku {
+    @Id
+    @GeneratedValue(strategy= GenerationType.AUTO)
     private long id;
     private long product_id;
     private long size_attribute_id;
@@ -85,7 +92,7 @@ public class products_skus {
         this.deleted_at = deleted_at;
     }
 
-    public products_skus(long id, long product_id, long size_attribute_id, long color_attribute_id, String sku, String price, long quantity, Date created_at, Date deleted_at) {
+    public ProductsSku(long id, long product_id, long size_attribute_id, long color_attribute_id, String sku, String price, long quantity, Date created_at, Date deleted_at) {
         this.id = id;
         this.product_id = product_id;
         this.size_attribute_id = size_attribute_id;
@@ -97,6 +104,6 @@ public class products_skus {
         this.deleted_at = deleted_at;
     }
 
-    public products_skus() {
+    public ProductsSku() {
     }
 }

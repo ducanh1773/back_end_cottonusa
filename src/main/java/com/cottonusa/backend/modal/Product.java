@@ -34,6 +34,16 @@ public class Product {
     private Date created_at;
     @Getter @Setter
     private Date deleted_at;
+
+    public String getImg_product() {
+        return img_product;
+    }
+
+    public void setImg_product(String img_product) {
+        this.img_product = img_product;
+    }
+
+    private String img_product;
     protected Product() {}
 
 

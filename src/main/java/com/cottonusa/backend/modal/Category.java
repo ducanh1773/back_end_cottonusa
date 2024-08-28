@@ -1,16 +1,30 @@
 package com.cottonusa.backend.modal;
 
-import java.util.Date;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 
-public class sub_categories {
+import java.util.Date;
+@Entity
+public class Category {
+    @Id
+    @GeneratedValue(strategy= GenerationType.AUTO)
     private Long id;
-    private Long parent_id;
     private String name;
     private String description;
     private Date created_at;
     private Date deleted_at;
 
-    public sub_categories() {
+    public Category() {
+    }
+
+    public Category(Long id, String name, String description, Date created_at, Date deleted_at) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.created_at = created_at;
+        this.deleted_at = deleted_at;
     }
 
     public Long getId() {
@@ -19,14 +33,6 @@ public class sub_categories {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public Long getParent_id() {
-        return parent_id;
-    }
-
-    public void setParent_id(Long parent_id) {
-        this.parent_id = parent_id;
     }
 
     public String getName() {
@@ -58,15 +64,6 @@ public class sub_categories {
     }
 
     public void setDeleted_at(Date deleted_at) {
-        this.deleted_at = deleted_at;
-    }
-
-    public sub_categories(Long id, Long parent_id, String name, String description, Date created_at, Date deleted_at) {
-        this.id = id;
-        this.parent_id = parent_id;
-        this.name = name;
-        this.description = description;
-        this.created_at = created_at;
         this.deleted_at = deleted_at;
     }
 }

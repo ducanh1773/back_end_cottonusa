@@ -24,7 +24,7 @@ public class ProductController {
     @GetMapping("/products")
     public List<Product> getProductLimit(
 
-            @RequestParam(required = false, defaultValue = "5") int limit) {
+            @RequestParam(required = false, defaultValue = "100") int limit) {
 
         List<Product> products = repository.findAll();
 

@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+
 @RestController
 class CustomerController {
 
@@ -113,7 +114,7 @@ class CustomerController {
     @GetMapping("/customers/first-name-x/{firstName}")
     public List<Customer> getCustomersByFirstNameAndLimit(
             @PathVariable String firstName,
-            @RequestParam(required = false, defaultValue = "10") int limit) {
+            @RequestParam(required = false, defaultValue = "5") int limit) {
         List<Customer> customers = repository.findByFirstName(firstName);
 
 
