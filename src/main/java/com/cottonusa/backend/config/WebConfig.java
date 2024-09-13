@@ -7,18 +7,18 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 
-@Configuration
-@EnableWebMvc
-public class WebConfig implements WebMvcConfigurer {
-
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedMethods("*")
-                .allowedHeaders("*")
-                .allowCredentials(true)
-                .allowedHeaders("*")
-                .maxAge(60 * 60 * 24)
-                .exposedHeaders("*");
-    }
-}
+//@Configuration
+//@EnableWebMvc
+//public class WebConfig implements WebMvcConfigurer {
+//
+//    @Override
+//    public void addCorsMappings(CorsRegistry registry) {
+//        registry.addMapping("/**")
+//                .allowedMethods("*")
+//                .allowedHeaders("*")
+//                .allowCredentials(true)
+//                .allowedHeaders("*")
+//                .maxAge(60 * 60 * 24)
+//                .exposedHeaders("*");
+//    }
+//}
