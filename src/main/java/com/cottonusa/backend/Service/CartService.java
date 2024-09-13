@@ -7,15 +7,11 @@ import com.cottonusa.backend.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 public class CartService {
 
-    @Autowired
     private CartRepository cartRepository;
 
-    @Autowired
     private ProductRepository productRepository;
 
     public Cart getCartById(Long id) {

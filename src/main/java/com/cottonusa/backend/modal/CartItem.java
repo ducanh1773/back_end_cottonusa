@@ -20,7 +20,7 @@ public class CartItem {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    private Long product_id;
+//    private Long product_id;
     private Long products_sku_id;
     private Long quantity;
 
@@ -42,7 +42,7 @@ public class CartItem {
     public CartItem() {}
 
     public CartItem(Long product_id, Long products_sku_id, Long quantity, Date created_at, Date deleted_at, Cart cart, Product product) {
-        this.product_id = product_id;
+//        this.product_id = product_id;
         this.products_sku_id = products_sku_id;
         this.quantity = quantity;
         this.created_at = created_at;
@@ -62,13 +62,13 @@ public class CartItem {
         this.id = id;
     }
 
-    public Long getProduct_id() {
-        return product_id;
-    }
+//    public Long getProduct_id() {
+//        return product_id;
+//    }
 
-    public void setProduct_id(Long product_id) {
-        this.product_id = product_id;
-    }
+//    public void setProduct_id(Long product_id) {
+//        this.product_id = product_id;
+//    }
 
     public Long getProducts_sku_id() {
         return products_sku_id;

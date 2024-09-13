@@ -7,7 +7,6 @@ import lombok.Setter;
 @Setter
 @Getter
 @Entity
-
 public class Customer {
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)

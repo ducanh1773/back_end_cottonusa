@@ -13,7 +13,6 @@ import java.util.List;
 @RequestMapping("/api/cart")
 public class CartItemController {
 
-    @Autowired
     private CartItemRepository cartItemRepository;
 
     @GetMapping("/items")

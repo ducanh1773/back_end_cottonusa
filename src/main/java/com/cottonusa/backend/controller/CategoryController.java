@@ -13,7 +13,7 @@ import java.util.List;
 @RestController
 public class CategoryController {
     private final CategoryRepository repository;
-    private List <Category> categories;
+    private List<Category> categories;
 
     public CategoryController(CategoryRepository repository) {
         this.repository = repository;
