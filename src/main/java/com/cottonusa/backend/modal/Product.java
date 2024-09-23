@@ -46,6 +46,19 @@ public class Product {
     private String img_product;
     protected Product() {}
 
+    public Product(Long id, String nameProduct, long priceProduct, String summary, String cover, String sku, String description, String category_id, Date created_at, Date deleted_at, String img_product) {
+        this.id = id;
+        this.nameProduct = nameProduct;
+        this.priceProduct = priceProduct;
+        this.summary = summary;
+        this.cover = cover;
+        this.sku = sku;
+        this.description = description;
+        this.category_id = category_id;
+        this.created_at = created_at;
+        this.deleted_at = deleted_at;
+        this.img_product = img_product;
+    }
 
     @Override
     public String toString() {
@@ -55,5 +68,7 @@ public class Product {
     }
 
 
-
+    public double getPrice() {
+        return priceProduct;
+    }
 }

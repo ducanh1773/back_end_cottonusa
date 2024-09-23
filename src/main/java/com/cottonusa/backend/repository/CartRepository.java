@@ -1,11 +1,13 @@
 package com.cottonusa.backend.repository;
 
+import com.cottonusa.backend.modal.Cart;
 import com.cottonusa.backend.modal.Customer;
-import com.cottonusa.backend.modal.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 @Repository
-public interface ProductRepository extends JpaRepository<Product, Long> {
+public interface CartRepository extends JpaRepository<Cart, Long> {
+    Optional<Cart> findByCustomerId(Long customerId);
 
 }
