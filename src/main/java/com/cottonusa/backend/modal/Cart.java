@@ -21,6 +21,18 @@ public class Cart {
 
     private double totalPrice;
 
+
+//    public void addItem(Product product, int quantity) {
+//        for (CartItem item : items) {
+//            if (item.getProduct().getId().equals(product.getId())) {
+//                item.setQuantity(item.getQuantity() + quantity);
+//                return;
+//            }
+//        }
+//        items.add(new CartItem(product, quantity));
+//    }
+
+
     // Constructors
     public Cart() {}
 
@@ -81,4 +93,6 @@ public class Cart {
     public void setTotalPrice(double totalPrice) {
         this.totalPrice = totalPrice;
     }
+
+
 }

@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 @Entity
 public class CartItem {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     @ManyToOne
@@ -16,6 +16,27 @@ public class CartItem {
     private Product product;
 
     private int quantity;
+
+    private String img_product;
+
+    public String getImg_product() {
+        return img_product;
+    }
+
+    public void setImg_product(String img_product) {
+        this.img_product = img_product;
+    }
+
+    public CartItem(Long id, Cart cart, Product product, int quantity, String img_product, String size, String color, double price) {
+        this.id = id;
+        this.cart = cart;
+        this.product = product;
+        this.quantity = quantity;
+        this.img_product = img_product;
+        this.size = size;
+        this.color = color;
+        this.price = price;
+    }
 
     public String getSize() {
         return size;
@@ -37,6 +58,8 @@ public class CartItem {
         return price;
     }
 
+
+
     public void setPrice(double price) {
         this.price = price;
     }
@@ -46,7 +69,7 @@ public class CartItem {
     private double price;
 
     // Constructors
-    public CartItem() {}
+    public CartItem(Product product, int quantity) {}
 
     public CartItem(Cart cart, Product product, int quantity) {
         this.cart = cart;
@@ -61,7 +84,8 @@ public class CartItem {
         this.quantity = quantity;
     }
 
-
+    public CartItem() {
+    }
 
     // Getters and setters
     public Long getId() {

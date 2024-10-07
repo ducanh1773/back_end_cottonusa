@@ -15,6 +15,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/cart")
@@ -31,13 +34,30 @@ public class CartController {
     @Autowired
     private ProductRepository productRepository;
 
+//    @Autowired
+//    private Cart cart;
 
-    @GetMapping("/{customerId}")
-    public ResponseEntity<Cart> xemGioHang(@PathVariable Long customerId) {
+//    @GetMapping("/{customerId}")
+//    public ResponseEntity<Cart> xemGioHang(@PathVariable Long customerId) {
+//        Cart gioHang = cartRepository.findByCustomerId(customerId)
+//                .orElseThrow(() -> new RuntimeException("Giỏ hàng không tồn tại cho khách hàng này"));
+//        return ResponseEntity.ok(gioHang);
+//    }
+
+    @GetMapping("/{customerId}/product-ids")
+    public ResponseEntity<List<Long>> layIdSanPhamTuGioHang(@PathVariable Long customerId) {
+        // Tìm giỏ hàng dựa trên customerId
         Cart gioHang = cartRepository.findByCustomerId(customerId)
                 .orElseThrow(() -> new RuntimeException("Giỏ hàng không tồn tại cho khách hàng này"));
-        return ResponseEntity.ok(gioHang);
+
+        // Lấy danh sách ID sản phẩm từ các mục trong giỏ hàng
+        List<Long> productIds = gioHang.getItems().stream()
+                .map(cartItem -> cartItem.getProduct().getId())
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(productIds);
     }
+
 
 
     @PostMapping("/create/{customerId}")
@@ -82,41 +102,58 @@ public class CartController {
         return ResponseEntity.ok("Đã cập nhật số lượng sản phẩm trong giỏ");
     }
 
-    @PostMapping("/them")
-    public ResponseEntity<String> themSanPhamVaoGio(@RequestBody CartItemDTO cartItemDTO) {
-        // Tìm giỏ hàng theo customerId
-        Cart gioHang = cartRepository.findByCustomerId(cartItemDTO.getCustomerId())
-                .orElse(new Cart()); // Tạo giỏ hàng mới nếu không có
+    @PostMapping("/{customerId}/add/{productId}")
+    public ResponseEntity<String> themSanPhamVaoGioHang(
+            @PathVariable Long customerId,
+            @PathVariable Long productId,
+            @RequestParam int quantity) {
 
-        // Nếu giỏ hàng mới, thêm thông tin khách hàng
-        if (gioHang.getId() == null) {
-            Customer khachHang = customerRepository.findById(cartItemDTO.getCustomerId())
-                    .orExlseThrow(() -> new RuntimeException("Khách hàng không tồn tại"));
-            gioHang.setCustomer(khachHang);
-            gioHang.setItems(new ArrayList<>());
-        }
+        // Tìm khách hàng
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new RuntimeException("Khách hàng không tồn tại"));
 
-        // Tìm sản phẩm theo productId
-        Product sanPham = productRepository.findById(cartItemDTO.getProductId())
+        // Tìm sản phẩm
+        Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
 
-        // Tạo CartItem và thêm vào giỏ hàng
-        CartItem chiTietGio = new CartItem();
-        chiTietGio.setCart(gioHang);
-        chiTietGio.setProduct(sanPham);
-        chiTietGio.setQuantity(cartItemDTO.getQuantity());
+        // Tìm giỏ hàng của khách hàng hoặc tạo mới
+        Cart gioHang = cartRepository.findByCustomerId(customerId)
+                .orElseGet(() -> {
+                    Cart newCart = new Cart();
+                    newCart.setCustomer(customer);
+                    newCart.setTotalPrice(0.0);
+                    return cartRepository.save(newCart);
+                });
 
-        gioHang.getItems().add(chiTietGio);
-        gioHang.setTotalPrice(gioHang.getTotalPrice() + sanPham.getPrice() * chiTietGio.getQuantity());
+        // Kiểm tra xem sản phẩm đã có trong giỏ hàng hay chưa
+        Optional<CartItem> existingItem = gioHang.getItems().stream()
+                .filter(item -> item.getProduct().getId().equals(productId))
+                .findFirst();
 
-        // Lưu giỏ hàng
+        if (existingItem.isPresent()) {
+            // Nếu sản phẩm đã có, cập nhật số lượng
+            CartItem cartItem = existingItem.get();
+            cartItem.setQuantity(cartItem.getQuantity() + quantity);
+        } else {
+            // Nếu chưa có, thêm sản phẩm mới vào giỏ hàng
+            CartItem cartItem = new CartItem();
+            cartItem.setProduct(product);
+            cartItem.setQuantity(quantity);
+            cartItem.setCart(gioHang);
+            gioHang.getItems().add(cartItem);
+        }
+
+        // Cập nhật tổng giá của giỏ hàng
+        gioHang.setTotalPrice(
+                gioHang.getItems().stream()
+                        .mapToDouble(item -> item.getProduct().getPrice() * item.getQuantity())
+                        .sum()
+        );
+
+        // Lưu giỏ hàng và các thay đổi
         cartRepository.save(gioHang);
 
-        return ResponseEntity.ok("Đã thêm sản phẩm vào giỏ");
+        return ResponseEntity.ok("Sản phẩm đã được thêm vào giỏ hàng");
     }
-
-
-
-
 
 }

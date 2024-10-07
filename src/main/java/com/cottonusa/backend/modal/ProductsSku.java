@@ -1,17 +1,16 @@
 package com.cottonusa.backend.modal;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 import java.util.Date;
+import java.util.List;
+
 @Entity
 public class ProductsSku {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     private long id;
-    private long product_id;
+//    private long product_id;
     private long size_attribute_id;
     private long color_attribute_id;
     private String sku;
@@ -19,6 +18,12 @@ public class ProductsSku {
     private long quantity;
     private Date created_at;
     private Date deleted_at;
+    @ManyToOne
+    @JoinColumn(name = "product_id")
+    private Product product;
+
+
+
 
     public long getId() {
         return id;
@@ -28,13 +33,13 @@ public class ProductsSku {
         this.id = id;
     }
 
-    public long getProduct_id() {
-        return product_id;
-    }
+//    public long getProduct_id() {
+//        return product_id;
+//    }
 
-    public void setProduct_id(long product_id) {
-        this.product_id = product_id;
-    }
+//    public void setProduct_id(long product_id) {
+//        this.product_id = product_id;
+//    }
 
     public long getSize_attribute_id() {
         return size_attribute_id;
@@ -94,7 +99,7 @@ public class ProductsSku {
 
     public ProductsSku(long id, long product_id, long size_attribute_id, long color_attribute_id, String sku, String price, long quantity, Date created_at, Date deleted_at) {
         this.id = id;
-        this.product_id = product_id;
+//        this.product_id = product_id;
         this.size_attribute_id = size_attribute_id;
         this.color_attribute_id = color_attribute_id;
         this.sku = sku;
