@@ -20,8 +20,24 @@ public class Cart {
     private List<CartItem> items = new ArrayList<>();
 
     private double totalPrice;
+    private int quantity;
 
+    public Long getProductId() {
+        return productId;
+    }
 
+    public void setProductId(Long productId) {
+        this.productId = productId;
+    }
+
+    private Long productId;
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
 //    public void addItem(Product product, int quantity) {
 //        for (CartItem item : items) {
 //            if (item.getProduct().getId().equals(product.getId())) {

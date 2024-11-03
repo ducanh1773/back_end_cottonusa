@@ -15,6 +15,9 @@ public class CartItem {
     @JoinColumn(name = "product_id")
     private Product product;
 
+    private long sizeAttributeId;
+    private long colorAttributeId;
+
     private int quantity;
 
     private String img_product;
@@ -33,26 +36,29 @@ public class CartItem {
         this.product = product;
         this.quantity = quantity;
         this.img_product = img_product;
-        this.size = size;
-        this.color = color;
+
         this.price = price;
     }
 
-    public String getSize() {
-        return size;
+
+
+    public long getSizeAttributeId() {
+        return sizeAttributeId;
     }
 
-    public void setSize(String size) {
-        this.size = size;
+    public void setSizeAttributeId(long sizeAttributeId) {
+        this.sizeAttributeId = sizeAttributeId;
     }
 
-    public String getColor() {
-        return color;
+    public long getColorAttributeId() {
+        return colorAttributeId;
     }
 
-    public void setColor(String color) {
-        this.color = color;
+    public void setColorAttributeId(long colorAttributeId) {
+        this.colorAttributeId = colorAttributeId;
     }
+
+
 
     public double getPrice() {
         return price;
@@ -64,12 +70,21 @@ public class CartItem {
         this.price = price;
     }
 
-    private String size;
-    private String color;
     private double price;
 
     // Constructors
     public CartItem(Product product, int quantity) {}
+
+    public CartItem(Long id, Cart cart, Product product, long sizeAttributeId, long colorAttributeId, int quantity, String img_product, double price) {
+        this.id = id;
+        this.cart = cart;
+        this.product = product;
+        this.sizeAttributeId = sizeAttributeId;
+        this.colorAttributeId = colorAttributeId;
+        this.quantity = quantity;
+        this.img_product = img_product;
+        this.price = price;
+    }
 
     public CartItem(Cart cart, Product product, int quantity) {
         this.cart = cart;

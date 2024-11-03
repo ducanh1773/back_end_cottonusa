@@ -15,6 +15,8 @@ public class ProductDTO {
     private Date created_at;
     private Date deleted_at;
     private String img_product;
+    private long sizeAttributeId;   // Add size attribute
+    private long colorAttributeId;
 
     public String getImg_product() {
         return img_product;
