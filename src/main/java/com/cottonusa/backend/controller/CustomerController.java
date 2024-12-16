@@ -128,26 +128,53 @@ class CustomerController {
 
 
 
-    @CrossOrigin(origins = "http://localhost:3000" , allowCredentials = "true")
-    @PostMapping("/login")
-    public LoginResponse login(@RequestBody LoginRequest loginRequest , HttpServletResponse response ) {
-        Optional<Customer> customer = repository.findByEmail(loginRequest.getEmail());
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
-        if (customer.isPresent() && passwordEncoder.matches(loginRequest.getPassWord(), customer.get().getPassWord())) {
-            String token = jwtUtil.generateToken(loginRequest.getEmail());
-            Cookie cookie = new Cookie("username", "JohnDoe");
-            cookie.setMaxAge(7 * 24 * 60 * 60); // 1 tuần
+//    @CrossOrigin(origins = "http://localhost:3000" , allowCredentials = "true")
+//    @PostMapping("/login")
+//    public LoginResponse login(@RequestBody LoginRequest loginRequest , HttpServletResponse response ) {
+//        Optional<Customer> customer = repository.findByEmail(loginRequest.getEmail());
+//        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+//
+//        if (customer.isPresent() && passwordEncoder.matches(loginRequest.getPassWord(), customer.get().getPassWord())) {
+//            String token = jwtUtil.generateToken(loginRequest.getEmail());
+//            Cookie cookie = new Cookie("username", "JohnDoe");
+//            cookie.setMaxAge(7 * 24 * 60 * 60); // 1 tuần
 //            cookie.setSecure(true); // Chỉ gửi cookie qua HTTPS
 //            cookie.setHttpOnly(true); // Không cho phép truy cập cookie từ JavaScript
-            response.addCookie(cookie);
-            response.setHeader("Set-Cookie",
-                    "username=JohnDoe; Path=/; Max-Age=604800");
-            return new LoginResponse(token, "Đăng nhập thành công!");
-        } else {
-            return new LoginResponse(null, "Email hoặc mật khẩu không đúng!");
-        }
+//            response.addCookie(cookie);
+//            response.setHeader("Set-Cookie",
+//                    "username=JohnDoe; Path=/; Max-Age=604800");
+//            return new LoginResponse(token, "Đăng nhập thành công!");
+//        } else {
+//            return new LoginResponse(null, "Email hoặc mật khẩu không đúng!");
+//        }
+//    }
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
+@PostMapping("/login")
+public LoginResponse login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+    Optional<Customer> customer = repository.findByEmail(loginRequest.getEmail());
+    PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(); // Tạo PasswordEncoder
+
+    if (customer.isPresent() && passwordEncoder.matches(loginRequest.getPassWord(), customer.get().getPassWord())) {
+        // Tạo token
+        String token = jwtUtil.generateToken(loginRequest.getEmail());
+
+        // Lưu token vào database
+        repository.updateTokenByEmail(token, loginRequest.getEmail());
+
+        // Cấu hình cookie
+        Cookie cookie = new Cookie("username", customer.get().getEmail());
+        cookie.setMaxAge(7 * 24 * 60 * 60); // 1 tuần
+        cookie.setSecure(false); // Đặt thành false cho localhost
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        response.addCookie(cookie);
+
+        // Trả về kết quả đăng nhập
+        return new LoginResponse(token, "Đăng nhập thành công!");
+    } else {
+        return new LoginResponse(null, "Email hoặc mật khẩu không đúng!");
     }
+}
 }
 
 

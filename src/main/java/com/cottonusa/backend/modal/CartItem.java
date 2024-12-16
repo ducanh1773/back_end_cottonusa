@@ -22,6 +22,9 @@ public class CartItem {
 
     private String img_product;
 
+
+
+
     public String getImg_product() {
         return img_product;
     }
@@ -96,6 +99,7 @@ public class CartItem {
         this.id = id;
         this.cart = cart;
         this.product = product;
+
         this.quantity = quantity;
     }
 

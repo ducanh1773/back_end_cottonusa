@@ -3,20 +3,23 @@ package com.cottonusa.backend.controller;
 import com.cottonusa.backend.DTO.CartItemDTO;
 import com.cottonusa.backend.DTO.CartUpdateRequest;
 import com.cottonusa.backend.DTO.UpdateQuantityRequest;
-import com.cottonusa.backend.modal.Cart;
-import com.cottonusa.backend.modal.CartItem;
-import com.cottonusa.backend.modal.Customer;
-import com.cottonusa.backend.modal.Product;
+import com.cottonusa.backend.modal.*;
 import com.cottonusa.backend.repository.CartItemRepository;
 import com.cottonusa.backend.repository.CartRepository;
 import com.cottonusa.backend.repository.CustomerRepository;
 import com.cottonusa.backend.repository.ProductRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.*;
+import utility.JwtUtil;
+
+
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -34,34 +37,13 @@ public class CartController {
 
     @Autowired
     private ProductRepository productRepository;
+    private final JwtUtil jwtUtil ;// Constructor Injection
 
-//    @Autowired
-//    private Cart cart;
 
-//    @GetMapping("/{customerId}")
-//    public ResponseEntity<Cart> xemGioHang(@PathVariable Long customerId) {
-//        Cart gioHang = cartRepository.findByCustomerId(customerId)
-//                .orElseThrow(() -> new RuntimeException("Giỏ hàng không tồn tại cho khách hàng này"));
-//        return ResponseEntity.ok(gioHang);
-//    }
-
-    @GetMapping("/{customerId}/product-ids")
-    public ResponseEntity<List<Long>> layIdSanPhamTuGioHang(@PathVariable Long customerId) {
-        // Tìm giỏ hàng dựa trên customerId
-        Cart gioHang = cartRepository.findByCustomerId(customerId)
-                .orElseThrow(() -> new RuntimeException("Giỏ hàng không tồn tại cho khách hàng này"));
-
-        // Lấy danh sách ID sản phẩm từ các mục trong giỏ hàng
-        List<Long> productIds = gioHang.getItems().stream()
-                .map(cartItem -> cartItem.getProduct().getId())
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(productIds);
+    @Autowired
+    public CartController(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
     }
-
-
-
-
 
     @PostMapping("/create/{customerId}")
     public ResponseEntity<?> createCartForCustomer(@PathVariable Long customerId) {
@@ -105,72 +87,34 @@ public class CartController {
         return ResponseEntity.ok("Đã cập nhật số lượng sản phẩm trong giỏ");
     }
 
-//    @PostMapping("/{customerId}/add/{productId}")
-//    public ResponseEntity<String> themSanPhamVaoGioHang(
-//            @PathVariable Long customerId,
-//            @PathVariable Long productId,
-//            @RequestParam int quantity) {
-//
-//        // Tìm khách hàng
-//        Customer customer = customerRepository.findById(customerId)
-//                .orElseThrow(() -> new RuntimeException("Khách hàng không tồn tại"));
-//
-//        // Tìm sản phẩm
-//        Product product = productRepository.findById(productId)
-//                .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
-//
-//        // Tìm giỏ hàng của khách hàng hoặc tạo mới
-//        Cart gioHang = cartRepository.findByCustomerId(customerId)
-//                .orElseGet(() -> {
-//                    Cart newCart = new Cart();
-//                    newCart.setCustomer(customer);
-//                    newCart.setTotalPrice(0.0);
-//                    return cartRepository.save(newCart);
-//                });
-//
-//        // Kiểm tra xem sản phẩm đã có trong giỏ hàng hay chưa
-//        Optional<CartItem> existingItem = gioHang.getItems().stream()
-//                .filter(item -> item.getProduct().getId().equals(productId))
-//                .findFirst();
-//
-//        if (existingItem.isPresent()) {
-//            // Nếu sản phẩm đã có, cập nhật số lượng
-//            CartItem cartItem = existingItem.get();
-//            cartItem.setQuantity(cartItem.getQuantity() + quantity);
-//        } else {
-//            // Nếu chưa có, thêm sản phẩm mới vào giỏ hàng
-//            CartItem cartItem = new CartItem();
-//            cartItem.setProduct(product);
-//            cartItem.setQuantity(quantity);
-//            cartItem.setCart(gioHang);
-//            cartItem.setImg_product(product.getImg_product());
-//
-//
-//            gioHang.getItems().add(cartItem);
-//        }
-//
-//        // Cập nhật tổng giá của giỏ hàng
-//        gioHang.setTotalPrice(
-//                gioHang.getItems().stream()
-//                        .mapToDouble(item -> item.getProduct().getPrice() * item.getQuantity())
-//                        .sum()
-//        );
-//
-//        // Lưu giỏ hàng và các thay đổi
-//        cartRepository.save(gioHang);
-//
-//        return ResponseEntity.ok("Sản phẩm đã được thêm vào giỏ hàng");
-//    }
-@PostMapping("/{customerId}/add/{productId}")
+@PostMapping("/add/{productId}")
 public ResponseEntity<String> themSanPhamVaoGioHang(
-        @PathVariable Long customerId,
+        @RequestHeader("Authorization") String authHeader,
         @PathVariable Long productId,
         @RequestParam int quantity,
-        @RequestParam long sizeAttributeId,    // New size attribute parameter
-        @RequestParam long colorAttributeId) { // New color attribute parameter
+        @RequestParam long sizeAttributeId,
+        @RequestParam long colorAttributeId) {
+    System.out.println("Authorization Header: " + authHeader);
+    if (productId == null) {
+        return ResponseEntity.badRequest().body("ID sản phẩm không hợp lệ");
+    }
 
-    // Tìm khách hàng
-    Customer customer = customerRepository.findById(customerId)
+    // Validate input
+    if (sizeAttributeId <= 0 || colorAttributeId <= 0) {
+        return ResponseEntity.badRequest().body("Invalid size or color attribute ID");
+    }
+
+    // Lấy email từ token
+    String token = authHeader.replace("Bearer ", "");
+    String email = JwtUtil.getEmailFromToken(token); // Lấy email từ token
+    System.out.println("Email: " + email);
+
+    if (email == null) {
+        return ResponseEntity.badRequest().body("Email không hợp lệ");
+    }
+
+    // Tìm khách hàng dựa trên email
+    Customer customer = customerRepository.findByEmail(email)
             .orElseThrow(() -> new RuntimeException("Khách hàng không tồn tại"));
 
     // Tìm sản phẩm
@@ -178,7 +122,7 @@ public ResponseEntity<String> themSanPhamVaoGioHang(
             .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
 
     // Tìm giỏ hàng của khách hàng hoặc tạo mới
-    Cart gioHang = cartRepository.findByCustomerId(customerId)
+    Cart gioHang = cartRepository.findByCustomerId(customer.getId())
             .orElseGet(() -> {
                 Cart newCart = new Cart();
                 newCart.setCustomer(customer);
@@ -186,66 +130,45 @@ public ResponseEntity<String> themSanPhamVaoGioHang(
                 return cartRepository.save(newCart);
             });
 
-    // Kiểm tra xem sản phẩm đã có trong giỏ hàng hay chưa
+    // Kiểm tra sản phẩm có trong giỏ hàng hay chưa
     Optional<CartItem> existingItem = gioHang.getItems().stream()
             .filter(item -> item.getProduct().getId().equals(productId) &&
                     item.getSizeAttributeId() == sizeAttributeId &&
-                    item.getColorAttributeId() == colorAttributeId)  // Check if size and color match
+                    item.getColorAttributeId() == colorAttributeId)
             .findFirst();
 
     if (existingItem.isPresent()) {
-        // Nếu sản phẩm đã có, cập nhật số lượng
+        // Cập nhật số lượng
         CartItem cartItem = existingItem.get();
         cartItem.setQuantity(cartItem.getQuantity() + quantity);
     } else {
-        // Nếu chưa có, thêm sản phẩm mới vào giỏ hàng
+        // Thêm sản phẩm mới vào giỏ hàng
         CartItem cartItem = new CartItem();
         cartItem.setProduct(product);
         cartItem.setQuantity(quantity);
         cartItem.setCart(gioHang);
         cartItem.setImg_product(product.getImg_product());
-        cartItem.setSizeAttributeId(sizeAttributeId);   // Set size attribute
+        cartItem.setSizeAttributeId(sizeAttributeId);
         cartItem.setColorAttributeId(colorAttributeId);
-        cartItem.setPrice(product.getPrice());// Set color attribute
+        cartItem.setPrice(product.getPrice());
 
         gioHang.getItems().add(cartItem);
     }
 
-    // Cập nhật tổng giá của giỏ hàng
+    // Cập nhật tổng giá
     gioHang.setTotalPrice(
             gioHang.getItems().stream()
                     .mapToDouble(item -> item.getProduct().getPrice() * item.getQuantity())
                     .sum()
     );
 
-    // Lưu giỏ hàng và các thay đổi
+    // Lưu giỏ hàng
+    System.out.println("Authorization Header: " + authHeader);
+    System.out.println("Token: " + token);
+    System.out.println("Email from token: " + email);
     cartRepository.save(gioHang);
-
     return ResponseEntity.ok("Sản phẩm đã được thêm vào giỏ hàng");
 }
-    public ResponseEntity<List<Long>> layIdSanPhamTuCart(@PathVariable Long cartId) {
-        // Tìm giỏ hàng dựa trên cartId
-        Cart gioHang = cartRepository.findById(cartId)
-                .orElseThrow(() -> new RuntimeException("Giỏ hàng không tồn tại"));
-
-        // Lấy danh sách ID sản phẩm từ các mục trong giỏ hàng
-        List<Long> productIds = gioHang.getItems().stream()
-                .map(cartItem -> cartItem.getProduct().getId())
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(productIds);
-    }
-//    @PutMapping("/{cartId}/updateQuantity")
-//    public ResponseEntity<String> updateProductQuantity(
-//            @PathVariable("cartId") Long cartId, // Correct usage of @PathVariable
-//            @RequestBody UpdateQuantityRequest request) {
-//        // Implement your logic to update the product quantity in the database
-//        // For example:
-//        // cartService.updateQuantity(cartId, request.getProductId(), request.getQuantity());
-//
-//        // Return a success response
-//        return ResponseEntity.ok("Quantity updated successfully");
-//    }
 @PutMapping("/{cartId}/updateQuantity")
 public ResponseEntity<String> updateProductQuantity(
         @PathVariable Long cartId,
@@ -285,5 +208,64 @@ public ResponseEntity<String> updateProductQuantity(
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Sản phẩm không tồn tại trong giỏ hàng");
         }
     }
+//    @PostMapping("/place-order")
+//    public ResponseEntity<String> placeOrder(@RequestBody Cart cart, HttpServletRequest request) {
+//        try {
+//            // Lấy token từ header Authorization
+//            String authHeader = request.getHeader("Authorization");
+//            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+//                return ResponseEntity.status(401).body("Token không hợp lệ.");
+//            }
+//
+//            // Lấy customerId từ token
+//            String token = authHeader.substring(7);
+//            String customerId = jwtUtil.getUserIdFromToken(token);
+//
+//            // Lưu customerId vào session
+//            HttpSession session = request.getSession();
+//            session.setAttribute("id", customerId);
+//
+//            // Lấy Customer từ customerId
+//            Optional<Customer> customerOptional = customerRepository.findById(Long.parseLong(customerId));
+//            Customer customer = customerOptional.orElseThrow(() -> new RuntimeException("Customer không tồn tại"));
+//
+//            // Gán Customer vào Cart
+//            cart.setCustomer(customer);
+//
+//            // Lưu đơn hàng vào cơ sở dữ liệu
+//            cartRepository.save(cart);
+//            return ResponseEntity.ok("Đặt hàng thành công!");
+//        } catch (Exception e) {
+//            return ResponseEntity.status(500).body("Lỗi khi đặt hàng.");
+//        }
+//    }
+        @PostMapping("/shipping/calculate")
+        public ResponseEntity<Map<String, Object>> calculateShipping(@RequestBody Map<String, String> request) {
+            try {
+                String address = request.get("address");
+
+                // Kiểm tra xem địa chỉ có được gửi từ client hay không
+                if (address == null || address.isEmpty()) {
+                    return ResponseEntity.badRequest().body(Map.of(
+                            "error", "Địa chỉ không được để trống."
+                    ));
+                }
+
+                // Trả về phí ship mặc định
+                int shippingFee = 30000; // 30,000 VND
+
+                return ResponseEntity.ok(Map.of(
+                        "address", address,
+                        "shippingFee", shippingFee
+                ));
+            } catch (Exception e) {
+                return ResponseEntity.status(500).body(Map.of(
+                        "error", "Đã xảy ra lỗi khi tính phí ship."
+                ));
+            }
+        }
+
+
+
 
 }

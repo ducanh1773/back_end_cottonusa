@@ -16,6 +16,7 @@ public class Cart {
     @OneToOne
     @JoinColumn(name = "customer_id")
     private Customer customer;
+
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> items = new ArrayList<>();
 

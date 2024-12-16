@@ -21,6 +21,8 @@ public class Customer {
 
     private String passWord;
 
+    private String token;
+
 
 
     protected Customer() {}
