@@ -169,32 +169,6 @@ public ResponseEntity<String> themSanPhamVaoGioHang(
     cartRepository.save(gioHang);
     return ResponseEntity.ok("Sản phẩm đã được thêm vào giỏ hàng");
 }
-@PutMapping("/{cartId}/updateQuantity")
-public ResponseEntity<String> updateProductQuantity(
-        @PathVariable Long cartId,
-        @RequestBody UpdateQuantityRequest request) {
-
-    // Find the cart by ID
-    Optional<Cart> cartOptional = cartRepository.findById(cartId);
-    if (cartOptional.isEmpty()) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cart not found");
-    }
-
-    // Find the cart item by product ID within the cart
-    Cart cart = cartOptional.get();
-    Optional<CartItem> cartItemOptional = cartItemRepository.findByCartAndProductId(cart, request.getProductId());
-
-    if (cartItemOptional.isEmpty()) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product not found in cart");
-    }
-
-    // Update quantity and save the cart item
-    CartItem cartItem = cartItemOptional.get();
-    cartItem.setQuantity(request.getQuantity());
-    cartItemRepository.save(cartItem);
-
-    return ResponseEntity.ok("Quantity updated successfully");
-}
     @DeleteMapping("/{cartId}/items/{productId}")
     public ResponseEntity<String> removeItemFromCart(@PathVariable Long cartId, @PathVariable Long productId) {
         // Tìm sản phẩm trong giỏ hàng
@@ -264,8 +238,104 @@ public ResponseEntity<String> updateProductQuantity(
                 ));
             }
         }
+//
+//    @GetMapping("/{cartId}/items")
+//    public ResponseEntity<List<CartItem>> getItemsInCart(@PathVariable Long cartId) {
+//        // Tìm giỏ hàng theo ID
+//        Optional<Cart> cartOptional = cartRepository.findById(cartId);
+//        if (cartOptional.isEmpty()) {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+//        }
+//
+//        // Lấy danh sách sản phẩm từ giỏ hàng
+//        Cart cart = cartOptional.get();
+//        List<CartItem> items = cart.getItems();
+//
+//        return ResponseEntity.ok(items);
+//    }
+//
+
+    @GetMapping("/items")
+    public ResponseEntity<List<Long>> getItemsInCart(@RequestHeader("Authorization") String authHeader) {
+        // Kiểm tra token
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+
+        // Lấy email từ token
+        String token = authHeader.substring(7); // Bỏ qua "Bearer "
+        String email = jwtUtil.getEmailFromToken(token);
+
+        if (email == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+
+        // Tìm khách hàng dựa trên email
+        Customer customer = customerRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Khách hàng không tồn tại"));
+
+        // Tìm giỏ hàng của khách hàng
+        Optional<Cart> cartOptional = cartRepository.findByCustomerId(customer.getId());
+        if (cartOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        // Lấy danh sách sản phẩm từ giỏ hàng
+        Cart cart = cartOptional.get();
+        List<CartItem> items = cart.getItems();
+
+        // Lấy danh sách id sản phẩm
+        List<Long> productIds = items.stream()
+                .map(cartItem -> cartItem.getProduct().getId()) // Giả sử bạn có phương thức getId() trong Product
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(productIds);
+    }
 
 
 
+    @PutMapping("/updateQuantity")
+    public ResponseEntity<String> updateProductQuantity(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody UpdateQuantityRequest request) {
+
+        // Kiểm tra token
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token không hợp lệ");
+        }
+
+        // Lấy email từ token
+        String token = authHeader.substring(7); // Bỏ qua "Bearer "
+        String email = jwtUtil.getEmailFromToken(token); // Phương thức lấy email từ token
+
+        if (email == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token không hợp lệ");
+        }
+
+        // Tìm khách hàng dựa trên email
+        Customer customer = customerRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Khách hàng không tồn tại"));
+
+        // Tìm giỏ hàng của khách hàng
+        Optional<Cart> cartOptional = cartRepository.findByCustomerId(customer.getId());
+        if (cartOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Giỏ hàng không tồn tại");
+        }
+
+        Cart cart = cartOptional.get();
+
+        // Tìm sản phẩm trong giỏ hàng
+        Optional<CartItem> cartItemOptional = cartItemRepository.findByCartAndProductId(cart, request.getProductId());
+        if (cartItemOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Sản phẩm không tồn tại trong giỏ hàng");
+        }
+
+        // Cập nhật số lượng và lưu sản phẩm trong giỏ hàng
+        CartItem cartItem = cartItemOptional.get();
+        cartItem.setQuantity(request.getQuantity());
+        cartItemRepository.save(cartItem);
+
+        return ResponseEntity.ok("Đã cập nhật số lượng sản phẩm thành công");
+    }
 
 }
