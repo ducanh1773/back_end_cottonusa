@@ -50,6 +50,11 @@ public class Customer {
                 id, firstName,lastName,email,passWord);
     }
 
+    public Long getId() {
+        return id;
+    }
 
-
+    public void setId(Long id) {
+        this.id = id;
+    }
 }

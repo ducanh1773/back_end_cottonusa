@@ -67,6 +67,18 @@ public class Order {
         this.orderDetails = orderDetails;
     }
 
+    public Order(Cart cart, Long id, Long userId, Double totalPrice, String shippingAddress, String paymentMethod, String orderStatus, Date createdAt, List<OrderDetail> orderDetails) {
+        this.cart = cart;
+        this.id = id;
+        this.userId = userId;
+        this.totalPrice = totalPrice;
+        this.shippingAddress = shippingAddress;
+        this.paymentMethod = paymentMethod;
+        this.orderStatus = orderStatus;
+        this.createdAt = createdAt;
+        this.orderDetails = orderDetails;
+    }
+
     public Long getId() {
         return id;
     }
@@ -129,5 +141,15 @@ public class Order {
 
     public void setOrderDetails(List<OrderDetail> orderDetails) {
         this.orderDetails = orderDetails;
+    }
+    @Override
+    public String toString() {
+        return "Order{" +
+                "paymentMethod='" + paymentMethod + '\'' +
+                ", shippingAddress='" + shippingAddress + '\'' +
+                ", totalPrice=" + totalPrice +
+                ", userId='" + userId + '\'' +
+                ", orderDetails=" + orderDetails +
+                '}';
     }
 }
