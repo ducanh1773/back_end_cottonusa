@@ -12,10 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import utility.JwtUtil;
 
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.UUID;
-import  java.util.List;
-import  java.util.ArrayList;
+import java.util.*;
 
 
 @Controller
@@ -59,6 +56,7 @@ public class OrderController {
             order.setTotalPrice(orderRequest.getTotalPrice());
             order.setUserId(customer.getId()); // Sử dụng userId từ khách hàng
 
+
             System.out.println("Payment Method: " + orderRequest.getPaymentMethod());
             System.out.println("Shipping Address: " + orderRequest.getShippingAddress());
             System.out.println("Total Price: " + orderRequest.getTotalPrice());
@@ -67,6 +65,9 @@ public class OrderController {
             if (orderRequest.getOrderDetails() == null) {
                 return ResponseEntity.badRequest().body("Chi tiết đơn hàng không được để trống.");
             }
+//            if (orderRequest.getCartId() != null) {
+//                order.setCartId(orderRequest.getCartId()); // Set the cart_id in the order
+//            }
 
             // Tạo các chi tiết đơn hàng từ orderRequest
             List<OrderDetail> orderDetails = new ArrayList<>();
@@ -79,6 +80,7 @@ public class OrderController {
                 orderDetail.setOrder(order); // Liên kết chi tiết với đơn hàng
                 orderDetails.add(orderDetail); // Thêm vào danh sách
             }
+
 
             order.setOrderDetails(orderDetails); // Thiết lập chi tiết đơn hàng trong Order
             orderRepository.save(order); // Lưu đơn hàng với các chi tiết
@@ -98,30 +100,39 @@ public class OrderController {
     @GetMapping("/detail")
     public ResponseEntity<?> getOrderDetails(@RequestHeader("Authorization") String authHeader) {
         try {
-            // Lấy token từ header
+            // Extract token and email
             String token = authHeader.replace("Bearer ", "");
-
-            // Lấy email từ token
             String email = JwtUtil.getEmailFromToken(token);
             if (email == null) {
                 return ResponseEntity.badRequest().body("Email không hợp lệ");
             }
 
-            // Tìm khách hàng dựa trên email
+            // Find customer
             Customer customer = customerRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException("Khách hàng không tồn tại"));
 
-            // Lấy userId từ đối tượng Customer
             Long userId = customer.getId();
 
-            // Lấy danh sách orderId từ bảng orderDetail dựa trên userId
-            Long orderId = orderDetailRepository.findLatestOrderIdByUserId(userId);
-//            return ResponseEntity.ok(allOrderDetails);
-            return ResponseEntity.ok("123");
+            // Fetch order IDs
+            List<Long> orderIds = orderDetailRepository.findLatestOrderIdsByUserId(userId);
+            if (orderIds.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            // Fetch product IDs for each order
+            Map<Long, List<Long>> productDetailMap = new HashMap<>();
+            for (Long orderId : orderIds) {
+                List<Long> productIds = orderDetailRepository.findProductIdsByOrderId(orderId);
+                productDetailMap.put(orderId, productIds);
+            }
+
+            return ResponseEntity.ok(productDetailMap); // Return orderId -> productIds mapping
+
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Lỗi khi lấy thông tin đơn hàng: " + e.getMessage());
         }
     }
+
 
 
 

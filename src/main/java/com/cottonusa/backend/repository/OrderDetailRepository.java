@@ -10,9 +10,18 @@ import java.util.List;
 
 @Repository
 public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> {
-    @Query("SELECT DISTINCT od.orderId FROM OrderDetail od WHERE od.order.userId = :userId AND   ")
-    List<Long> findOrderIdsByUserId(@Param("userId") Long userId);
+
+
     List<OrderDetail> findByOrderId(Long orderId);
-    @Query("SELECT od.orderId FROM OrderDetail od WHERE od.order.userId = :userId order by created_at desc limit 1")
-    Long findLatestOrderIdByUserId(@Param("userId") Long userId);
+    @Query("SELECT od.order.id FROM OrderDetail od WHERE od.order.userId = :userId ORDER BY od.order.createdAt DESC")
+    List<Long> findOrderIdsByUserId(@Param("userId") Long userId);
+
+    @Query("SELECT od.order.id FROM OrderDetail od WHERE od.order.userId = :userId ORDER BY od.order.createdAt DESC LIMIT 1")
+    List<Long> findLatestOrderIdsByUserId(@Param("userId") Long userId);
+
+    @Query("SELECT od.id FROM OrderDetail od WHERE od.order.id = :orderId")
+    List<Long> findOrderDetailIdsByOrderId(@Param("orderId") Long orderId);
+
+    @Query("SELECT od.productId FROM OrderDetail od WHERE od.order.id = :orderId")
+    List<Long> findProductIdsByOrderId(@Param("orderId") Long orderId);
 }
